@@ -4,7 +4,8 @@
     <title>IKEA Stock Checker</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     {% if is_checking %}
-    <meta http-equiv="refresh" content="10">
+    <!-- Refresh every 90 seconds -->
+    <meta http-equiv="refresh" content="90">
     {% endif %}
 </head>
 <body>
@@ -46,8 +47,10 @@
                 <div class="checking-indicator">Checking product availability...</div>
             {% endif %}
             
+            <!-- For each item, get the key (query) and the value (result) -->
             {% for query, result in results.items() %}
                 <div class="result-card">
+                    <!-- Display the product name or if not, fall back to the search query -->
                     <h3>{{ result.product_name or query }}</h3>
                     <div>{{ result.timestamp }}</div>
                     
@@ -57,10 +60,6 @@
                         </div>
                     {% endif %}
                     
-                    {% if result.price %}
-                        <div>{{ result.price }}</div>
-                    {% endif %}
-                    
                     <div>{{ result.status }}</div>
                     
                     {% if result.error %}
@@ -68,26 +67,37 @@
                     {% endif %}
                     
                     {% if result.product_url %}
-                        <a href="{{ result.product_url }}" target="_blank" class="view-btn">View on IKEA</a>
+                        <!-- NOTE: target = "_blank" makes it open a new tab-->
+                        <a href="{{ result.product_url }}" target="_blank" class="view-IKEA-btn">View on IKEA</a>
                     {% endif %}
                 </div>
             {% endfor %}
         </div>
     {% endif %}
 
-    <!-- JavaScript to check status and refresh when complete -->
+    <!-- JavaScript: Check status and refresh when complete -->
     <script>
         {% if is_checking %}
+        
         setInterval(function() {
+
             fetch('/check_status')
-                .then(response => response.json())
-                .then(data => {
+                // Convert the response to JSON format
+                .then(function(response) {
+                    return response.json();
+                })
+
+                .then(function(data) {
+
                     if (!data.is_checking) {
+                        // Reload page to show results
                         window.location.reload();
                     }
+                    // If still checking, do nothing and wait for the next time interval
                 });
-        }, 2000);
+        }, 2000); // Check every 2 seconds (2000 milliseconds)
         {% endif %}
     </script>
+
 </body>
 </html>

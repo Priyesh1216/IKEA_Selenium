@@ -277,8 +277,7 @@ def search():
         save_searches(saved_searches)  # Save the updated list
 
     # Start checking IKEA's website in the background
-    # This uses a "thread" which is like a separate mini-program that runs alongside our main program
-    # This way the website doesn't freeze while we're checking IKEA
+    # "thread" - separate mini-program that runs alongside the main program so website does not freeze
     threading.Thread(target=check_product_availability, args=(query,)).start()
 
     # Show a message to let the user know we're checking
@@ -313,7 +312,6 @@ def check_all():
 
     # If already checking, don't start another check
     if is_checking:
-        flash("Already checking products. Please wait.")
         return redirect(url_for('index'))
 
     # Check each saved search one by one
