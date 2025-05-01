@@ -1,0 +1,74 @@
+/* Padding: top right bottom left */
+/* Text decoration: none means that it is just plain text */
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+}
+
+.search-form {
+    margin-bottom: 20px;
+}
+
+.search-form input {
+    padding: 5px;
+    width: 300px;
+}
+
+.search-form button,
+.check-btn,
+.check-all-btn {
+    padding: 5px 10px;
+    background-color: blue;
+    color: white;
+    text-decoration: none;
+}
+
+.delete-btn {
+    padding: 5px 10px;
+    background-color: red;
+    color: white;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    vertical-align: middle;
+    display: inline-block;
+}
+
+.saved-searches {
+    border: 1px solid #ddd;
+    padding: 10px;
+    margin-bottom: 20px;
+}
+
+.saved-searches li {
+    margin-bottom: 5px;
+}
+
+.checking-indicator {
+    background-color: #ffda1a;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+.result-card {
+    border: 1px solid #ddd;
+    margin-bottom: 10px;
+    padding: 10px;
+}
+
+.product-image img {
+    max-width: 200px;
+}
+
+.view-IKEA-btn {
+    background-color: #ffda1a;
+    color: black;
+    padding: 3px 10px;
+    text-decoration: none;
+    display: block;
+    margin-top: 15px;
+    width: auto;
+    /* Width determined by content */
+    max-width: max-content;
+}
