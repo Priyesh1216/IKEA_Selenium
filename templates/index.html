@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>IKEA Stock Checker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    {% if is_checking %}
+    <meta http-equiv="refresh" content="10">
+    {% endif %}
+</head>
+<body>
+    <h1>IKEA Stock Checker</h1>
+    
+    <!-- Search Form -->
+    <div class="search-form">
+        <form action="{{ url_for('search') }}" method="post">
+            <input type="text" name="query" placeholder="Enter product name or article number" required>
+            <button type="submit">Search</button>
+        </form>
+    </div>
+    
+    <!-- Saved Searches -->
+    {% if searches %}
+        <div class="saved-searches">
+            <h2>Saved Searches</h2>
+            <a href="{{ url_for('check_all') }}" class="check-all-btn">Check All</a>
+            <ul>
+                {% for query in searches %}
+                    <li>
+                        {{ query }}
+                        <form action="{{ url_for('search') }}" method="post" style="display: inline;">
+                            <input type="hidden" name="query" value="{{ query }}">
+                            <button type="submit" class="check-btn">Check</button>
+                        </form>
+                        <a href="{{ url_for('delete_search', query=query) }}" class="delete-btn">Delete</a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+    
+    <!-- Results -->
+    {% if results %}
+        <div class="results">
+            <h2>Results</h2>
+            {% if is_checking %}
+                <div class="checking-indicator">Checking product availability...</div>
+            {% endif %}
+            
+            {% for query, result in results.items() %}
+                <div class="result-card">
+                    <h3>{{ result.product_name or query }}</h3>
+                    <div>{{ result.timestamp }}</div>
+                    
+                    {% if result.product_image %}
+                        <div class="product-image">
+                            <img src="{{ result.product_image }}">
+                        </div>
+                    {% endif %}
+                    
+                    {% if result.price %}
+                        <div>{{ result.price }}</div>
+                    {% endif %}
+                    
+                    <div>{{ result.status }}</div>
+                    
+                    {% if result.error %}
+                        <div>Error: {{ result.error }}</div>
+                    {% endif %}
+                    
+                    {% if result.product_url %}
+                        <a href="{{ result.product_url }}" target="_blank" class="view-btn">View on IKEA</a>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- JavaScript to check status and refresh when complete -->
+    <script>
+        {% if is_checking %}
+        setInterval(function() {
+            fetch('/check_status')
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.is_checking) {
+                        window.location.reload();
+                    }
+                });
+        }, 2000);
+        {% endif %}
+    </script>
+</body>
+</html>

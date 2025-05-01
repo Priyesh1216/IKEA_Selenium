@@ -12,6 +12,7 @@ from datetime import datetime
 
 # Initialize Flask application
 app = Flask(__name__)
+app.secret_key = "ikea_stock_checker_secret_key"
 
 # File paths for saved data
 SEARCHES_FILE = "saved_searches.json"  # Stores user's saved searches
@@ -231,6 +232,101 @@ def check_product_availability(search_query):
     is_checking = False  # Reset flag when search is complete
 
 
-# Run the app
+# Main page (URL to function)
+@app.route('/')
+def index():
+    # Get all saved searches
+    saved_searches = load_saved_searches()
+
+    # Show the index.html page
+    # Send information:
+    # 1. searches: the list of saved searches
+    # 2. results: any results we have from checking products
+    # 3. is_checking: If currently checking a product
+    return render_template('index.html',
+                           searches=saved_searches,
+                           results=search_results,
+                           is_checking=is_checking)
+
+
+# Will be called periodically to see if page should be refreshed
+@app.route('/check_status')
+def check_status():
+    return jsonify({
+        "is_checking": is_checking
+    })
+
+
+# When search form is submitted
+# Only responds to form submissions
+@app.route('/search', methods=['POST'])
+def search():
+    # .strip() -- remove any spaces at the beginning or end
+    query = request.form.get('query', '').strip()
+
+    # If they didn't type anything, show an error message
+    if not query:
+        # redirect - back to main page
+        return redirect(url_for('index'))
+
+    saved_searches = load_saved_searches()
+
+    # If item is not in the list, add it
+    if query not in saved_searches:
+        saved_searches.append(query)  # Add to the list
+        save_searches(saved_searches)  # Save the updated list
+
+    # Start checking IKEA's website in the background
+    # This uses a "thread" which is like a separate mini-program that runs alongside our main program
+    # This way the website doesn't freeze while we're checking IKEA
+    threading.Thread(target=check_product_availability, args=(query,)).start()
+
+    # Show a message to let the user know we're checking
+    flash(f"Checking availability for: {query}")
+    # Send the user back to the main page
+    return redirect(url_for('index'))
+
+
+# DELETE
+# <query> in URL is a placeholder (for actual search text)
+@app.route('/delete/<query>')
+def delete_search(query):
+    saved_searches = load_saved_searches()
+
+    # If the search is in our list, remove it
+    if query in saved_searches:
+        saved_searches.remove(query)
+        save_searches(saved_searches)
+
+        # Remove any results we have for the item
+        if query in search_results:
+            del search_results[query]
+
+    # Redirect to main page
+    return redirect(url_for('index'))
+
+
+# CHECK ALL
+@app.route('/check_all')
+def check_all():
+    saved_searches = load_saved_searches()
+
+    # If already checking, don't start another check
+    if is_checking:
+        flash("Already checking products. Please wait.")
+        return redirect(url_for('index'))
+
+    # Check each saved search one by one
+    def check_all_products():
+        for query in saved_searches:
+            check_product_availability(query)
+
+    # Start checking all products in the background using a thread
+    threading.Thread(target=check_all_products).start()
+
+    # Redirect to main page
+    return redirect(url_for('index'))
+
+
 if __name__ == '__main__':
     app.run(debug=True)
