@@ -118,7 +118,7 @@ def check_product_availability(search_query):
             location_search_box = browser.find_element(
                 By.CSS_SELECTOR, '#hnf-store-search')
 
-            location = "Montreal"  # You can change this to your preferred location
+            location = "Montreal"
 
             print(f"Entering location: {location}")
             location_search_box.clear()
