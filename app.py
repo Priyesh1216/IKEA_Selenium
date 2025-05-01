@@ -8,6 +8,7 @@ import pickle  # For saving/loading cookies
 import os
 import json
 import threading
+import time
 from datetime import datetime
 
 # Initialize Flask application
@@ -83,7 +84,7 @@ def check_product_availability(search_query):
     options = webdriver.ChromeOptions()
 
     # Browser checks info with no visible window
-    options.add_argument("--headless")
+    # options.add_argument("--headless")
 
     try:
         # Start browser and navigate to IKEA website
@@ -94,6 +95,70 @@ def check_product_availability(search_query):
         cookies_loaded = load_cookies(browser, COOKIES_FILE)
         if not cookies_loaded:
             print("No saved cookies found. Will create new ones after this session.")
+
+        # Select store location first
+        try:
+            print("Selecting store location...")
+            # Wait for store picker button to appear
+            WebDriverWait(browser, 10).until(
+                EC.presence_of_element_located(
+                    (By.CSS_SELECTOR, '#hnf-header-storepicker > a')))
+
+            # Click on store picker button
+            select_store_button = browser.find_element(
+                By.CSS_SELECTOR, '#hnf-header-storepicker > a')
+            select_store_button.click()
+
+            # Wait for store search box to appear
+            WebDriverWait(browser, 10).until(
+                EC.presence_of_element_located(
+                    (By.CSS_SELECTOR, '#hnf-store-search')))
+
+            # Find and fill the store search box
+            location_search_box = browser.find_element(
+                By.CSS_SELECTOR, '#hnf-store-search')
+
+            location = "Montreal"  # You can change this to your preferred location
+
+            print(f"Entering location: {location}")
+            location_search_box.clear()
+            location_search_box.send_keys(location)  # Simulate the user typing
+            # Simulate the user pressing enter
+            location_search_box.send_keys(Keys.RETURN)
+
+            # Wait until at least one store button appears
+            WebDriverWait(browser, 10).until(
+                EC.presence_of_element_located(
+                    (By.XPATH, "//div[starts-with(@id, 'choice-')]/button"))
+            )
+
+            # Wait until it's clickable
+            store_buttons = WebDriverWait(browser, 10).until(
+                EC.presence_of_all_elements_located(
+                    (By.XPATH, "//div[starts-with(@id, 'choice-')]/button"))
+            )
+
+            # Try clicking the first store button
+            try:
+                first_store = store_buttons[0]
+                WebDriverWait(browser, 10).until(EC.element_to_be_clickable(
+                    (By.XPATH, "//div[starts-with(@id, 'choice-')]/button")))
+                browser.execute_script(
+                    "arguments[0].scrollIntoView();", first_store)
+                time.sleep(1)  # Short wait for scroll
+                first_store.click()
+                print("Store selected successfully.")
+            except Exception as e:
+                print(f"Failed to click store button: {e}")
+
+            # Wait for the page to update with the selected store
+            WebDriverWait(browser, 10).until(
+                EC.presence_of_element_located(
+                    (By.CSS_SELECTOR, '#ikea-search-input')))
+
+        except Exception as e:
+            print(f"Error selecting store: {e}")
+            # Continue with the search even if store selection fails
 
         # Wait for search box to appear and enter search query
         WebDriverWait(browser, 10).until(EC.presence_of_element_located(
