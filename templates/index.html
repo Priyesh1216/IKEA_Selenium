@@ -48,30 +48,32 @@
             {% endif %}
             
             <!-- For each item, get the key (query) and the value (result) -->
-            {% for query, result in results.items() %}
-                <div class="result-card">
-                    <!-- Display the product name or if not, fall back to the search query -->
-                    <h3>{{ result.product_name or query }}</h3>
-                    <div>{{ result.timestamp }}</div>
-                    
-                    {% if result.product_image %}
-                        <div class="product-image">
-                            <img src="{{ result.product_image }}">
-                        </div>
-                    {% endif %}
-                    
-                    <div>{{ result.status }}</div>
-                    
-                    {% if result.error %}
-                        <div>Error: {{ result.error }}</div>
-                    {% endif %}
-                    
-                    {% if result.product_url %}
-                        <!-- NOTE: target = "_blank" makes it open a new tab-->
-                        <a href="{{ result.product_url }}" target="_blank" class="view-IKEA-btn">View on IKEA</a>
-                    {% endif %}
-                </div>
-            {% endfor %}
+            <div class= "results-grid">
+                {% for query, result in results.items() %}
+                    <div class="result-card">
+                        <!-- Display the product name or if not, fall back to the search query -->
+                        <h3>{{ result.product_name or query }}</h3>
+                        <div>{{ result.timestamp }}</div>
+                        
+                        {% if result.product_image %}
+                            <div class="product-image">
+                                <img src="{{ result.product_image }}">
+                            </div>
+                        {% endif %}
+                        
+                        <div>{{ result.status }}</div>
+                        
+                        {% if result.error %}
+                            <div>Error: {{ result.error }}</div>
+                        {% endif %}
+                        
+                        {% if result.product_url %}
+                            <!-- NOTE: target = "_blank" makes it open a new tab-->
+                            <a href="{{ result.product_url }}" target="_blank" class="view-IKEA-btn">View on IKEA</a>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
         </div>
     {% endif %}
 
