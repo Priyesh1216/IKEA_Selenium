@@ -14,15 +14,28 @@
     <!-- Search Form -->
     <div class="search-form">
         <form action="{{ url_for('search') }}" method="post">
-            <input type="text" name="query" placeholder="Enter product name or article number" required>
-            <button type="submit">Search</button>
+            <div class="form-row">
+                
+                <div class="form-group">
+                    <label for="query">Product:</label>
+                    <input type="text" id="query" name="query" placeholder="Enter product name or article number" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="location">Location:</label>
+                    <input type="text" id="location" name="location" placeholder="Enter city (e.g., Montreal)" value="{{ location }}">
+                </div>
+
+                <button type="submit">Search</button>
+            </div>
         </form>
     </div>
-    
+
     <!-- Saved Searches -->
     {% if searches %}
         <div class="saved-searches">
             <h2>Saved Searches</h2>
+            <p>Current location: <strong>{{ location or "Not set" }}</strong></p>
             <a href="{{ url_for('check_all') }}" class="check-all-btn">Check All</a>
             <ul>
                 {% for query in searches %}
@@ -30,6 +43,7 @@
                         {{ query }}
                         <form action="{{ url_for('search') }}" method="post" style="display: inline;">
                             <input type="hidden" name="query" value="{{ query }}">
+                            <input type="hidden" name="location" value="{{ location }}">
                             <button type="submit" class="check-btn">Check</button>
                         </form>
                         <a href="{{ url_for('delete_search', query=query) }}" class="delete-btn">Delete</a>
@@ -38,6 +52,7 @@
             </ul>
         </div>
     {% endif %}
+
     
     <!-- Results -->
     {% if results %}

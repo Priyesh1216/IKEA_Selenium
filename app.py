@@ -51,17 +51,18 @@ def load_saved_searches():
     if os.path.exists(SEARCHES_FILE):
         with open(SEARCHES_FILE, 'r') as file:
             return json.load(file)
-    return []  # Return empty list if file doesn't exist
+    # Return empty dict with default values
+    return {"searches": [], "location": ""}
 
 
 # Function to save searches to JSON file
-def save_searches(searches):
+def save_searches(data):
     with open(SEARCHES_FILE, 'w') as file:
-        json.dump(searches, file)
+        json.dump(data, file)
 
 
 # Main function to check IKEA product availability
-def check_product_availability(search_query):
+def check_product_availability(location, search_query):
     global search_results, is_checking
 
     is_checking = True  # Set flag to indicate search is in progress
@@ -96,69 +97,68 @@ def check_product_availability(search_query):
         if not cookies_loaded:
             print("No saved cookies found. Will create new ones after this session.")
 
-        # Select store location first
-        try:
-            print("Selecting store location...")
-            # Wait for store picker button to appear
-            WebDriverWait(browser, 10).until(
-                EC.presence_of_element_located(
-                    (By.CSS_SELECTOR, '#hnf-header-storepicker > a')))
-
-            # Click on store picker button
-            select_store_button = browser.find_element(
-                By.CSS_SELECTOR, '#hnf-header-storepicker > a')
-            select_store_button.click()
-
-            # Wait for store search box to appear
-            WebDriverWait(browser, 10).until(
-                EC.presence_of_element_located(
-                    (By.CSS_SELECTOR, '#hnf-store-search')))
-
-            # Find and fill the store search box
-            location_search_box = browser.find_element(
-                By.CSS_SELECTOR, '#hnf-store-search')
-
-            location = "Montreal"
-
-            print(f"Entering location: {location}")
-            location_search_box.clear()
-            location_search_box.send_keys(location)  # Simulate the user typing
-            # Simulate the user pressing enter
-            location_search_box.send_keys(Keys.RETURN)
-
-            # Wait until at least one store button appears
-            WebDriverWait(browser, 10).until(
-                EC.presence_of_element_located(
-                    (By.XPATH, "//div[starts-with(@id, 'choice-')]/button"))
-            )
-
-            # Wait until it's clickable
-            store_buttons = WebDriverWait(browser, 10).until(
-                EC.presence_of_all_elements_located(
-                    (By.XPATH, "//div[starts-with(@id, 'choice-')]/button"))
-            )
-
-            # Try clicking the first store button
+            # Select store location first
             try:
-                first_store = store_buttons[0]
-                WebDriverWait(browser, 10).until(EC.element_to_be_clickable(
-                    (By.XPATH, "//div[starts-with(@id, 'choice-')]/button")))
-                browser.execute_script(
-                    "arguments[0].scrollIntoView();", first_store)
-                time.sleep(1)  # Short wait for scroll
-                first_store.click()
-                print("Store selected successfully.")
+                print("Selecting store location...")
+                # Wait for store picker button to appear
+                WebDriverWait(browser, 10).until(
+                    EC.presence_of_element_located(
+                        (By.CSS_SELECTOR, '#hnf-header-storepicker > a')))
+
+                # Click on store picker button
+                select_store_button = browser.find_element(
+                    By.CSS_SELECTOR, '#hnf-header-storepicker > a')
+                select_store_button.click()
+
+                # Wait for store search box to appear
+                WebDriverWait(browser, 10).until(
+                    EC.presence_of_element_located(
+                        (By.CSS_SELECTOR, '#hnf-store-search')))
+
+                # Find and fill the store search box
+                location_search_box = browser.find_element(
+                    By.CSS_SELECTOR, '#hnf-store-search')
+
+                print(f"Entering location: {location}")
+                location_search_box.clear()
+                location_search_box.send_keys(
+                    location)  # Simulate the user typing
+                # Simulate the user pressing enter
+                location_search_box.send_keys(Keys.RETURN)
+
+                # Wait until at least one store button appears
+                WebDriverWait(browser, 10).until(
+                    EC.presence_of_element_located(
+                        (By.XPATH, "//div[starts-with(@id, 'choice-')]/button"))
+                )
+
+                # Wait until it's clickable
+                store_buttons = WebDriverWait(browser, 10).until(
+                    EC.presence_of_all_elements_located(
+                        (By.XPATH, "//div[starts-with(@id, 'choice-')]/button"))
+                )
+
+                # Try clicking the first store button
+                try:
+                    first_store = store_buttons[0]
+                    WebDriverWait(browser, 10).until(EC.element_to_be_clickable(
+                        (By.XPATH, "//div[starts-with(@id, 'choice-')]/button")))
+                    browser.execute_script(
+                        "arguments[0].scrollIntoView();", first_store)
+                    time.sleep(1)  # Short wait for scroll
+                    first_store.click()
+                    print("Store selected successfully.")
+                except Exception as e:
+                    print(f"Failed to click store button: {e}")
+
+                # Wait for the page to update with the selected store
+                WebDriverWait(browser, 10).until(
+                    EC.presence_of_element_located(
+                        (By.CSS_SELECTOR, '#ikea-search-input')))
+
             except Exception as e:
-                print(f"Failed to click store button: {e}")
-
-            # Wait for the page to update with the selected store
-            WebDriverWait(browser, 10).until(
-                EC.presence_of_element_located(
-                    (By.CSS_SELECTOR, '#ikea-search-input')))
-
-        except Exception as e:
-            print(f"Error selecting store: {e}")
-            # Continue with the search even if store selection fails
+                print(f"Error selecting store: {e}")
+                return None
 
         # Wait for search box to appear and enter search query
         WebDriverWait(browser, 10).until(EC.presence_of_element_located(
@@ -301,15 +301,17 @@ def check_product_availability(search_query):
 @app.route('/')
 def index():
     # Get all saved searches
-    saved_searches = load_saved_searches()
+    saved_data = load_saved_searches()
 
     # Show the index.html page
     # Send information:
     # 1. searches: the list of saved searches
-    # 2. results: any results we have from checking products
-    # 3. is_checking: If currently checking a product
+    # 2. location: the saved location
+    # 3. results: any results we have from checking products
+    # 4. is_checking: If currently checking a product
     return render_template('index.html',
-                           searches=saved_searches,
+                           searches=saved_data["searches"],
+                           location=saved_data["location"],
                            results=search_results,
                            is_checking=is_checking)
 
@@ -328,22 +330,28 @@ def check_status():
 def search():
     # .strip() -- remove any spaces at the beginning or end
     query = request.form.get('query', '').strip()
+    location = request.form.get('location', '').strip()
 
     # If they didn't type anything, show an error message
     if not query:
         # redirect - back to main page
         return redirect(url_for('index'))
 
-    saved_searches = load_saved_searches()
+    saved_data = load_saved_searches()
 
     # If item is not in the list, add it
-    if query not in saved_searches:
-        saved_searches.append(query)  # Add to the list
-        save_searches(saved_searches)  # Save the updated list
+    if query not in saved_data["searches"]:
+        saved_data["searches"].append(query)  # Add to the list
+
+    # Update the saved location
+    saved_data["location"] = location
+
+    save_searches(saved_data)
 
     # Start checking IKEA's website in the background
     # "thread" - separate mini-program that runs alongside the main program so website does not freeze
-    threading.Thread(target=check_product_availability, args=(query,)).start()
+    threading.Thread(target=check_product_availability,
+                     args=(location, query,)).start()
 
     # Show a message to let the user know we're checking
     flash(f"Checking availability for: {query}")
@@ -355,12 +363,12 @@ def search():
 # <query> in URL is a placeholder (for actual search text)
 @app.route('/delete/<query>')
 def delete_search(query):
-    saved_searches = load_saved_searches()
+    saved_data = load_saved_searches()
 
     # If the search is in our list, remove it
-    if query in saved_searches:
-        saved_searches.remove(query)
-        save_searches(saved_searches)
+    if query in saved_data["searches"]:
+        saved_data["searches"].remove(query)
+        save_searches(saved_data)
 
         # Remove any results we have for the item
         if query in search_results:
@@ -373,7 +381,8 @@ def delete_search(query):
 # CHECK ALL
 @app.route('/check_all')
 def check_all():
-    saved_searches = load_saved_searches()
+    saved_data = load_saved_searches()
+    location = saved_data["location"]
 
     # If already checking, don't start another check
     if is_checking:
@@ -381,8 +390,8 @@ def check_all():
 
     # Check each saved search one by one
     def check_all_products():
-        for query in saved_searches:
-            check_product_availability(query)
+        for query in saved_data["searches"]:
+            check_product_availability(location, query)
 
     # Start checking all products in the background using a thread
     threading.Thread(target=check_all_products).start()

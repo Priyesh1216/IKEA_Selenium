@@ -6,8 +6,27 @@ body {
     margin: 20px;
 }
 
-.search-form {
-    margin-bottom: 20px;
+.form-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.search-form input {
+    padding: 8px;
+    width: 250px;
 }
 
 .search-form input {
