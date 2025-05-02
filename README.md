@@ -1,4 +1,4 @@
-# 🛒 IKEA Stock Checker
+🛒 IKEA Stock Checker
 
 This project is a Flask-based web app that helps users check real-time stock availability for IKEA products in specific store locations. It combines a clean UI with backend web-crawling automation using Selenium.
 
