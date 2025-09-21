@@ -2,20 +2,20 @@
 
 This project is a Flask-based web app that helps users check real-time stock availability for IKEA products in specific store locations. It combines a clean UI with backend web-crawling automation using Selenium.
 
-## 🌟 Features
+## Features
 - **Live Stock Search**: Query IKEA inventory by product name or article number  
 - **Location-Aware Results**: Filter results by city or store location  
 - **Saved Searches**: Quickly recheck frequently monitored items  
 - **Auto-Refresh**: Background polling while checking product availability  
 - **Direct Links**: Go straight to the IKEA product page from the results  
 
-## 🎯 Prerequisites
+## Prerequisites
 - Python 3.8+  
 - Google Chrome & ChromeDriver  
 - Flask  
 - Selenium  
 
-## 🚀 Installation
+## Installation
 
 1. Clone the repository:
    ```bash
