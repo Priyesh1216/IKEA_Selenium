@@ -41,8 +41,4 @@ This project is a Flask-based web app that helps users check real-time stock ava
 ## Notes
 - Ensure ChromeDriver matches your version of Google Chrome  
 - For best results, ensure IKEA item is properly spelled   
-
-## Disclaimer
-This tool is not affiliated with or endorsed by IKEA.
-
 ---
